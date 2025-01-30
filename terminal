@@ -1,0 +1,6 @@
+mkdir facebook-leads-analyzer
+cd facebook-leads-analyzer
+npx create-react-app client
+mkdir server
+cd server
+npm init -y 
