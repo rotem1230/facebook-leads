@@ -8,65 +8,68 @@ const supabase = createClient(config.supabaseUrl, config.supabaseKey);
 // קבלת פרטי העסק
 router.get('/', async (req, res) => {
     try {
-        const { data, error } = await supabase
-            .from('businesses')
-            .select('*')
-            .single();
+        const { data } = await supabase
+            .from('users')
+            .select('business_info')
+            .limit(1);
 
-        if (error) throw error;
-
-        // אם אין נתונים, החזר אובייקט ריק
-        const businessInfo = data || {
+        const defaultInfo = {
             name: '',
             description: '',
-            phone: '',
-            email: '',
             website: '',
-            address: ''
+            phone: '',
+            keywords: []
         };
 
+        const businessInfo = data?.[0]?.business_info || defaultInfo;
         res.json({ businessInfo });
     } catch (error) {
-        console.error('Error getting business info:', error);
-        res.status(500).json({ message: 'אירעה שגיאה בטעינת פרטי העסק' });
+        console.error('Error:', error);
+        res.status(500).json({ message: 'שגיאה בקבלת פרטי העסק' });
     }
 });
 
 // עדכון פרטי העסק
 router.post('/', async (req, res) => {
     try {
-        const { name, description, phone, email, website, address } = req.body;
+        const { name, description, website, phone, keywords } = req.body;
 
-        if (!name?.trim()) {
+        if (!name) {
             return res.status(400).json({ message: 'שם העסק הוא שדה חובה' });
         }
 
         const businessInfo = {
             name: name.trim(),
-            description: description?.trim() || '',
-            phone: phone?.trim() || '',
-            email: email?.trim() || '',
-            website: website?.trim() || '',
-            address: address?.trim() || ''
+            description: description ? description.trim() : '',
+            website: website ? website.trim() : '',
+            phone: phone ? phone.trim() : '',
+            keywords: keywords || []
         };
 
-        // עדכן או צור חדש (upsert)
-        const { data, error } = await supabase
-            .from('businesses')
-            .upsert(businessInfo)
+        const { data: users } = await supabase
+            .from('users')
+            .select('id')
+            .limit(1);
+
+        if (!users?.length) {
+            return res.status(404).json({ message: 'לא נמצאו משתמשים במערכת' });
+        }
+
+        const { data } = await supabase
+            .from('users')
+            .update({ business_info: businessInfo })
+            .eq('id', users[0].id)
             .select()
             .single();
 
-        if (error) throw error;
-
         res.json({
             message: 'פרטי העסק נשמרו בהצלחה',
-            businessInfo: data
+            businessInfo: data.business_info
         });
     } catch (error) {
-        console.error('Error saving business info:', error);
-        res.status(500).json({ message: 'אירעה שגיאה בשמירת פרטי העסק' });
+        console.error('Error:', error);
+        res.status(500).json({ message: 'שגיאה בשמירת פרטי העסק' });
     }
 });
 
-module.exports = router; 
+module.exports = router;
