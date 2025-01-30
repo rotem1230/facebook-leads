@@ -24,7 +24,11 @@ router.get('/', async (req, res) => {
         const businessInfo = data?.[0]?.business_info || defaultInfo;
         res.json({ businessInfo });
     } catch (error) {
+<<<<<<< HEAD
         console.error('Error:', error);
+=======
+        console.error('Error getting business info:', error);
+>>>>>>> 869a13a690637be21bf9a77c0111b23af4198e08
         res.status(500).json({ message: 'שגיאה בקבלת פרטי העסק' });
     }
 });
@@ -34,13 +38,18 @@ router.post('/', async (req, res) => {
     try {
         const { name, description, website, phone, keywords } = req.body;
 
+<<<<<<< HEAD
         if (!name) {
+=======
+        if (!name || !name.trim()) {
+>>>>>>> 869a13a690637be21bf9a77c0111b23af4198e08
             return res.status(400).json({ message: 'שם העסק הוא שדה חובה' });
         }
 
         const businessInfo = {
             name: name.trim(),
             description: description ? description.trim() : '',
+<<<<<<< HEAD
             website: website ? website.trim() : '',
             phone: phone ? phone.trim() : '',
             keywords: keywords || []
@@ -59,6 +68,18 @@ router.post('/', async (req, res) => {
             .from('users')
             .update({ business_info: businessInfo })
             .eq('id', users[0].id)
+=======
+            phone: phone ? phone.trim() : '',
+            email: email ? email.trim() : '',
+            website: website ? website.trim() : '',
+            address: address ? address.trim() : ''
+        };
+
+        // עדכן או צור רשומה (upsert)
+        const { data, error } = await supabase
+            .from('businesses')
+            .upsert(businessInfo)
+>>>>>>> 869a13a690637be21bf9a77c0111b23af4198e08
             .select()
             .single();
 
@@ -67,9 +88,17 @@ router.post('/', async (req, res) => {
             businessInfo: data.business_info
         });
     } catch (error) {
+<<<<<<< HEAD
         console.error('Error:', error);
+=======
+        console.error('Error saving business info:', error);
+>>>>>>> 869a13a690637be21bf9a77c0111b23af4198e08
         res.status(500).json({ message: 'שגיאה בשמירת פרטי העסק' });
     }
 });
 
+<<<<<<< HEAD
 module.exports = router;
+=======
+module.exports = router;
+>>>>>>> 869a13a690637be21bf9a77c0111b23af4198e08
