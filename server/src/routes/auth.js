@@ -1,5 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
+const jwt = require('jsonwebtoken');
+const config = require('../config');
+const { supabase } = require('../lib/supabase');
 
 // Test route
 router.get('/test', (req, res) => {
@@ -62,6 +66,54 @@ router.post('/login', async (req, res) => {
             message: error.message || 'אירעה שגיאה בהתחברות'
         });
     }
+});
+
+router.post('/facebook', async (req, res) => {
+  try {
+    const { accessToken } = req.body;
+    
+    // בדוק את תקינות הטוקן מול פייסבוק
+    const response = await axios.get(`https://graph.facebook.com/me?access_token=${accessToken}`);
+    
+    if (!response.data.id) {
+      return res.status(401).json({ message: 'Invalid Facebook token' });
+    }
+
+    // בדוק אם המשתמש קיים או צור חדש
+    let { data: users } = await supabase
+      .from('users')
+      .select('*')
+      .eq('facebook_id', response.data.id);
+
+    let user = users?.[0];
+
+    if (!user) {
+      const { data: newUser, error } = await supabase
+        .from('users')
+        .insert([{
+          facebook_id: response.data.id,
+          name: response.data.name,
+          email: response.data.email
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      user = newUser;
+    }
+
+    // צור טוקן JWT
+    const token = jwt.sign(
+      { userId: user.id },
+      config.jwtSecret,
+      { expiresIn: '7d' }
+    );
+
+    res.json({ token });
+  } catch (error) {
+    console.error('Facebook auth error:', error);
+    res.status(500).json({ message: 'שגיאה באימות מול פייסבוק' });
+  }
 });
 
 module.exports = router; 
