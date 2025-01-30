@@ -28,7 +28,7 @@ router.get('/', async (req, res) => {
         res.json({ businessInfo });
     } catch (error) {
         console.error('Error getting business info:', error);
-        res.status(500).json({ message: 'אירעה שגיאה בטעינת פרטי העסק' });
+        res.status(500).json({ message: 'שגיאה בקבלת פרטי העסק' });
     }
 });
 
@@ -37,20 +37,20 @@ router.post('/', async (req, res) => {
     try {
         const { name, description, phone, email, website, address } = req.body;
 
-        if (!name?.trim()) {
+        if (!name || !name.trim()) {
             return res.status(400).json({ message: 'שם העסק הוא שדה חובה' });
         }
 
         const businessInfo = {
             name: name.trim(),
-            description: description?.trim() || '',
-            phone: phone?.trim() || '',
-            email: email?.trim() || '',
-            website: website?.trim() || '',
-            address: address?.trim() || ''
+            description: description ? description.trim() : '',
+            phone: phone ? phone.trim() : '',
+            email: email ? email.trim() : '',
+            website: website ? website.trim() : '',
+            address: address ? address.trim() : ''
         };
 
-        // עדכן או צור חדש (upsert)
+        // עדכן או צור רשומה (upsert)
         const { data, error } = await supabase
             .from('businesses')
             .upsert(businessInfo)
@@ -65,8 +65,8 @@ router.post('/', async (req, res) => {
         });
     } catch (error) {
         console.error('Error saving business info:', error);
-        res.status(500).json({ message: 'אירעה שגיאה בשמירת פרטי העסק' });
+        res.status(500).json({ message: 'שגיאה בשמירת פרטי העסק' });
     }
 });
 
-module.exports = router; 
+module.exports = router;

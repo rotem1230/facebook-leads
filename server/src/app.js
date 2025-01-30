@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const config = require('./config');
 const bodyParser = require('body-parser');
 const path = require('path');
@@ -22,7 +21,7 @@ const supabase = createClient(config.supabaseUrl, config.supabaseKey);
 
 // Middleware
 app.use(cors({
-    origin: ['https://your-frontend-domain.com', 'http://localhost:3000'],
+    origin: ['http://facebook-system.com', 'https://facebook-system.com', 'http://147.93.58.82', 'http://localhost:3000'],
     credentials: true
 }));
 
@@ -46,14 +45,9 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'Server is working!' });
 });
 
-// יצירת תיקיית data אם לא קיימת
+// יצירת תיקיית data
 const dataDir = path.join(process.cwd(), 'data');
 fs.mkdir(dataDir, { recursive: true }).catch(console.error);
-
-// Connect to MongoDB
-mongoose.connect(config.mongoUri)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -71,4 +65,4 @@ app.use((err, req, res, next) => {
 
 console.log('Server initialized');
 
-module.exports = app; 
+module.exports = app;
